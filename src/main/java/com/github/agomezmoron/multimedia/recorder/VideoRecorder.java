@@ -75,6 +75,8 @@ public class VideoRecorder {
     
     private static List<VideoRecorderEventListener> listeners = new ArrayList<VideoRecorderEventListener>();
     
+    private static boolean automaticWrite = true;
+    
    
     /**
      * Strategy to record using {@link Thread}.
@@ -102,9 +104,12 @@ public class VideoRecorder {
                         	listener.frameAdded(videoRecorderEvObj);
                         }
                         
-                        frames.add(VideoRecorderUtil.saveIntoDirectory(capture, new File(
+                        if(!automaticWrite){
+                        	frames.add(VideoRecorderUtil.saveIntoDirectory(capture, new File(
                                 VideoRecorderConfiguration.getTempDirectory().getAbsolutePath() + File.separatorChar
                                         + videoName.replace(".mov", ""))));
+                        }
+                        
                         Thread.sleep(VideoRecorderConfiguration.getCaptureInterval());
                     } while (recording);
                 } catch (Exception e) {
@@ -143,7 +148,11 @@ public class VideoRecorder {
                 }
                 currentThread.interrupt();
             }
-            videoPathString = createVideo();
+            
+            //If the automatic write is true
+            if(automaticWrite){
+            	videoPathString = createVideo();
+            }
             if (!VideoRecorderConfiguration.wantToKeepFrames()) {
                 deleteDirectory(new File(VideoRecorderConfiguration.getTempDirectory().getAbsolutePath()
                         + File.separatorChar + videoName.replace(".mov", "")));
@@ -151,6 +160,18 @@ public class VideoRecorder {
         }
         return videoPathString;
     }
+    
+    
+    /**
+     * It starts recording (if it wasn't started before), but it could be chosen if it writes the file or not
+     * @param newVideoName
+     * @param automaticWrite
+     */
+    public static void start(String newVideoName, boolean automaticWriteVideoFile){
+    	automaticWrite = automaticWriteVideoFile;
+    	start(newVideoName);
+    }
+    
 
     /**
      * It starts recording (if it wasn't started before).
